@@ -16,14 +16,19 @@ Project: ${analysis.projectName}
 `;
 
   // Add table of contents if not already present
-  if (!content.includes('## Table of Contents')) {
+  if (!content.includes("## Table of Contents")) {
     const toc = generateTableOfContents(content);
-    
+
     // Find the first heading and insert ToC after it
     const firstHeadingMatch = content.match(/^# .+$/m);
     if (firstHeadingMatch) {
-      const firstHeadingIndex = content.indexOf(firstHeadingMatch[0]) + firstHeadingMatch[0].length;
-      content = content.substring(0, firstHeadingIndex) + '\n\n' + toc + content.substring(firstHeadingIndex);
+      const firstHeadingIndex =
+        content.indexOf(firstHeadingMatch[0]) + firstHeadingMatch[0].length;
+      content =
+        content.substring(0, firstHeadingIndex) +
+        "\n\n" +
+        toc +
+        content.substring(firstHeadingIndex);
     } else {
       content = toc + content;
     }
@@ -46,36 +51,39 @@ Project: ${analysis.projectName}
  */
 function generateTableOfContents(content) {
   const headings = [];
-  const lines = content.split('\n');
-  
+  const lines = content.split("\n");
+
   // Extract all headings
   for (const line of lines) {
     const match = line.match(/^(#{2,4}) (.+)$/);
     if (match) {
       const level = match[1].length - 1; // Subtract 1 to convert ## (h2) to level 1
       const text = match[2].trim();
-      const anchor = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
-      
+      const anchor = text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/\s+/g, "-");
+
       headings.push({ level, text, anchor });
     }
   }
-  
+
   if (headings.length === 0) {
-    return '';
+    return "";
   }
-  
+
   // Generate ToC
-  let toc = '## Table of Contents\n\n';
-  
+  let toc = "## Table of Contents\n\n";
+
   for (const heading of headings) {
-    const indent = '  '.repeat(heading.level - 1);
+    const indent = "  ".repeat(heading.level - 1);
     toc += `${indent}- [${heading.text}](#${heading.anchor})\n`;
   }
-  
-  return toc + '\n';
+
+  return toc + "\n";
 }
 
 module.exports = {
   formatDocumentation,
-  generateTableOfContents
+  generateTableOfContents,
 };

@@ -1,7 +1,22 @@
-const fs = require('fs-extra');
-const path = require('path');
-const axios = require('axios');
-const { formatDocumentation } = require('../utils/formatter');
+const fs = require("fs-extra");
+const path = require("path");
+const axios = require("axios");
+const { formatDocumentation } = require("../utils/formatter");
+
+/**
+ * Cleans up markdown content by removing code fence markers
+ * @param {string} content - The markdown content
+ * @returns {string} Cleaned content
+ */
+function cleanMarkdownContent(content) {
+  // Remove opening markdown fence if present
+  content = content.replace(/^```markdown\s*\n/, "");
+
+  // Remove closing markdown fence if present
+  content = content.replace(/\n```\s*$/, "");
+
+  return content;
+}
 
 /**
  * Generate documentation using Gemini AI API
@@ -12,20 +27,27 @@ const { formatDocumentation } = require('../utils/formatter');
 async function generateDocumentation(projectAnalysis, outputDir) {
   // Create output directory if it doesn't exist
   await fs.ensureDir(outputDir);
-  
+
   // Prepare the prompt for Gemini API
   const prompt = prepareGeminiPrompt(projectAnalysis);
-  
+
   // Call Gemini API to generate documentation
   const documentation = await callGeminiAPI(prompt);
-    // Format the documentation
-  const formattedDocumentation = formatDocumentation(documentation, projectAnalysis);
-  
+  // Format the documentation
+  const formattedDocumentation = formatDocumentation(
+    documentation,
+    projectAnalysis
+  );
+
   // Save the generated documentation
   await saveDocumentation(formattedDocumentation, outputDir);
-  
+
   // Generate additional documentation files
-  await generateAdditionalFiles(projectAnalysis, formattedDocumentation, outputDir);
+  await generateAdditionalFiles(
+    projectAnalysis,
+    formattedDocumentation,
+    outputDir
+  );
 }
 
 /**
@@ -36,15 +58,16 @@ async function generateDocumentation(projectAnalysis, outputDir) {
 function prepareGeminiPrompt(analysis) {
   // Extract key information for the prompt
   const { projectName, languages, dependencies, files } = analysis;
-  
+
   // Format languages for the prompt
   const languagesList = Object.entries(languages)
     .map(([lang, count]) => `${lang} (${count} files)`)
-    .join(', ');
-  
+    .join(", ");
+
   // Format dependencies for the prompt
-  const dependenciesList = Object.keys(dependencies || {}).join(', ') || 'None detected';
-  
+  const dependenciesList =
+    Object.keys(dependencies || {}).join(", ") || "None detected";
+
   // Create the prompt
   return `Create comprehensive documentation for a project named "${projectName}" with the following characteristics:
   
@@ -64,10 +87,14 @@ function prepareGeminiPrompt(analysis) {
   Format the documentation in Markdown with proper headings, code blocks, and sections.
   
   Package.json Information:
-  ${analysis.packageInfo ? JSON.stringify(analysis.packageInfo, null, 2) : 'No package.json found'}
+  ${
+    analysis.packageInfo
+      ? JSON.stringify(analysis.packageInfo, null, 2)
+      : "No package.json found"
+  }
   
   README Content:
-  ${analysis.readme || 'No README found'}`;
+  ${analysis.readme || "No README found"}`;
 }
 
 /**
@@ -75,77 +102,82 @@ function prepareGeminiPrompt(analysis) {
  * @param {string} prompt - The formatted prompt for the AI
  * @returns {Promise<string>} The generated documentation
  */
-async function callGeminiAPI(prompt) {
-  try {
+async function callGeminiAPI(prompt) {  try {
     // Always use the hardcoded API key first
-    let apiKey = 'AIzaSyAK2OO6_nky-KR1YtHQJdFiUVjOlr6rrns';
-    console.log('Using included API key');
-    
+    let apiKey = "AIzaSyAK2OO6_nky-KR1YtHQJdFiUVjOlr6rrns";
+
     // As a backup, try to get API key from process.env
     if (!apiKey) {
       apiKey = process.env.GEMINI_API_KEY;
-      if (apiKey) {
-        console.log('Using API key from environment variables');
-      }
     }
-    
+
     if (!apiKey) {
-      throw new Error('API key not available. Please report this issue.');
-    }
-    
-    console.log('Calling Gemini API...');
-    
-    const response = await axios.post(
+      throw new Error("API key not available. Please report this issue.");
+    }    const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         contents: [
           {
             parts: [
               {
-                text: prompt
-              }
-            ]
-          }
-        ]
+                text: prompt,
+              },
+            ],
+          },
+        ],
       },
       {
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       }
     );
-      // Extract the generated text from the response
-    console.log('API response received.');
-    
+
     let generatedContent;
-    
+
     try {
       // Handle different possible response formats
       if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
         generatedContent = response.data.candidates[0].content.parts[0].text;
-      } else if (response.data?.candidates?.[0]?.content?.parts?.[0]?.textContent) {
-        generatedContent = response.data.candidates[0].content.parts[0].textContent;
+      } else if (
+        response.data?.candidates?.[0]?.content?.parts?.[0]?.textContent
+      ) {
+        generatedContent =
+          response.data.candidates[0].content.parts[0].textContent;
       } else if (response.data?.candidates?.[0]?.text) {
         generatedContent = response.data.candidates[0].text;
       } else {
-        console.log('Unexpected response format:', JSON.stringify(response.data, null, 2));
-        generatedContent = 'Unable to parse API response correctly. Please check the API response format.';
+        console.log(
+          "Unexpected response format:",
+          JSON.stringify(response.data, null, 2)
+        );
+        generatedContent =
+          "Unable to parse API response correctly. Please check the API response format.";
       }
     } catch (err) {
-      console.error('Error extracting content from response:', err.message);
-      console.log('Response data structure:', JSON.stringify(response.data, null, 2));
-      throw new Error('Failed to extract content from Gemini API response');
+      console.error("Error extracting content from response:", err.message);
+      console.log(
+        "Response data structure:",
+        JSON.stringify(response.data, null, 2)
+      );
+      throw new Error("Failed to extract content from Gemini API response");
     }
-    
+
     if (!generatedContent) {
-      throw new Error('No content generated from Gemini API');
+      throw new Error("No content generated from Gemini API");
     }
-    
+
+    // Clean up the generated content
+    generatedContent = cleanMarkdownContent(generatedContent);
+
     return generatedContent;
   } catch (error) {
-    console.error('Error calling Gemini API:', error.message);
+    console.error("Error calling Gemini API:", error.message);
     if (error.response) {
-      console.error('API Response:', JSON.stringify(error.response.data, null, 2));
+      console.error(
+        "API Response:",
+        JSON.stringify(error.response.data, null, 2)
+      );
     }
     throw new Error(`Failed to generate documentation: ${error.message}`);
   }
@@ -158,16 +190,24 @@ async function callGeminiAPI(prompt) {
  * @returns {Promise<void>}
  */
 async function saveDocumentation(documentation, outputDir) {
+  // Clean up the documentation and remove any markdown fences
+  documentation = cleanMarkdownContent(documentation);
+
   // Save main README.md
-  await fs.writeFile(path.join(outputDir, 'README.md'), documentation);
-  
+  await fs.writeFile(path.join(outputDir, "README.md"), documentation);
+
   // Try to split the documentation into sections
   const sections = splitDocumentationIntoSections(documentation);
-  
+
   // Save each section as a separate file
   for (const [title, content] of Object.entries(sections)) {
-    const fileName = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') + '.md';
-    if (fileName !== 'readme.md') { // Avoid duplicating the main README
+    const fileName =
+      title
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]/g, "") + ".md";
+    if (fileName !== "readme.md") {
+      // Avoid duplicating the main README
       await fs.writeFile(path.join(outputDir, fileName), content);
     }
   }
@@ -188,14 +228,20 @@ Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString
 
 ## Project Statistics
 - Total Files: ${analysis.files}
-- Languages: ${Object.entries(analysis.languages).map(([lang, count]) => `${lang} (${count})`).join(', ')}
+- Languages: ${Object.entries(analysis.languages)
+    .map(([lang, count]) => `${lang} (${count})`)
+    .join(", ")}
 - Dependencies: ${Object.keys(analysis.dependencies || {}).length || 0}
 
 ## Documentation Files
-${fs.readdirSync(outputDir).filter(file => file.endsWith('.md')).map(file => `- [${file}](${file})`).join('\n')}
+${fs
+  .readdirSync(outputDir)
+  .filter((file) => file.endsWith(".md"))
+  .map((file) => `- [${file}](${file})`)
+  .join("\n")}
 `;
-  
-  await fs.writeFile(path.join(outputDir, '_SUMMARY.md'), summary);
+
+  await fs.writeFile(path.join(outputDir, "_SUMMARY.md"), summary);
 }
 
 /**
@@ -204,19 +250,22 @@ ${fs.readdirSync(outputDir).filter(file => file.endsWith('.md')).map(file => `- 
  * @returns {Object} Map of section title to content
  */
 function splitDocumentationIntoSections(documentation) {
+  // Clean up any markdown code fences first
+  documentation = cleanMarkdownContent(documentation);
+
   const sections = {};
-  const lines = documentation.split('\n');
-  
-  let currentSection = 'README';
+  const lines = documentation.split("\n");
+
+  let currentSection = "README";
   let currentContent = [];
-  
-  lines.forEach(line => {
-    if (line.startsWith('# ')) {
+
+  lines.forEach((line) => {
+    if (line.startsWith("# ")) {
       // Save the previous section
       if (currentContent.length > 0) {
-        sections[currentSection] = currentContent.join('\n');
+        sections[currentSection] = currentContent.join("\n");
       }
-      
+
       // Start a new section
       currentSection = line.substring(2).trim();
       currentContent = [line];
@@ -224,15 +273,15 @@ function splitDocumentationIntoSections(documentation) {
       currentContent.push(line);
     }
   });
-  
+
   // Save the last section
   if (currentContent.length > 0) {
-    sections[currentSection] = currentContent.join('\n');
+    sections[currentSection] = currentContent.join("\n");
   }
-  
+
   return sections;
 }
 
 module.exports = {
-  generateDocumentation
+  generateDocumentation,
 };

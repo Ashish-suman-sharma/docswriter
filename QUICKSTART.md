@@ -47,6 +47,7 @@ docswriter
 ```
 
 This will:
+
 - Scan your project files
 - Analyze the project structure
 - Generate comprehensive documentation in the `docs` folder
