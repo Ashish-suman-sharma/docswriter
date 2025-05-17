@@ -1,6 +1,6 @@
 {
   "name": "docswriter",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "src/index.js",
   "bin": {
     "docswriter": "./src/index.js"
@@ -22,12 +22,12 @@
   "description": "Automated documentation generator using AI and Gemini API",
   "repository": {
     "type": "git",
-    "url": "https://github.com/docswriter/docswriter"
+    "url": "https://github.com/Ashish-suman-sharma/docswriter.git"
   },
   "bugs": {
-    "url": "https://github.com/docswriter/docswriter/issues"
+    "url": "https://github.com/Ashish-suman-sharma/docswriter/issues"
   },
-  "homepage": "https://github.com/docswriter/docswriter#readme",
+  "homepage": "https://github.com/Ashish-suman-sharma/docswriter/#readme",
   "engines": {
     "node": ">=14.0.0"
   },
