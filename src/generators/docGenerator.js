@@ -102,7 +102,8 @@ function prepareGeminiPrompt(analysis) {
  * @param {string} prompt - The formatted prompt for the AI
  * @returns {Promise<string>} The generated documentation
  */
-async function callGeminiAPI(prompt) {  try {
+async function callGeminiAPI(prompt) {
+  try {
     // Always use the hardcoded API key first
     let apiKey = "AIzaSyAK2OO6_nky-KR1YtHQJdFiUVjOlr6rrns";
 
@@ -113,7 +114,8 @@ async function callGeminiAPI(prompt) {  try {
 
     if (!apiKey) {
       throw new Error("API key not available. Please report this issue.");
-    }    const response = await axios.post(
+    }
+    const response = await axios.post(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         contents: [
