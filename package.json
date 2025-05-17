@@ -1,0 +1,46 @@
+{
+  "name": "docswriter",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "bin": {
+    "docswriter": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "node src/scripts/prepublish.js",
+    "postinstall": "node src/scripts/postinstall.js"
+  },
+  "keywords": [
+    "documentation",
+    "generator",
+    "auto-docs",
+    "ai"
+  ],
+  "author": "AI Developer",
+  "license": "MIT",
+  "description": "Automated documentation generator using AI and Gemini API",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/docswriter/docswriter"
+  },
+  "bugs": {
+    "url": "https://github.com/docswriter/docswriter/issues"
+  },
+  "homepage": "https://github.com/docswriter/docswriter#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "commander": "^13.1.0",
+    "dotenv": "^16.5.0",
+    "fs-extra": "^11.3.0",
+    "glob": "^8.1.0",
+    "path": "^0.12.7",
+    "yargs": "^17.7.2"
+  }
+}

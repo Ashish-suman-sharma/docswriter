@@ -1,0 +1,29 @@
+# Test files and directories
+test-project/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Development files
+.env
+.env.*
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+
+# Documentation files (except the ones we want to include)
+docs/
+examples/
+*.log
+
+# Node specific
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Markdown files (except the ones we want to include)
+CONTRIBUTING.md
